@@ -1,6 +1,10 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import { IncomingForm, Fields, Files } from "formidable";
-import { handleCloudinaryUpload } from "../../lib/cloudinary";
+import { IncomingForm, Fields, Files } from 'formidable';
+import {
+  handleCloudinaryDelete,
+  handleCloudinaryUpload,
+  handleGetCloudinaryUploads,
+} from '../../lib/cloudinary';
 
 // Custom config for our API route
 export const config = {
@@ -11,21 +15,49 @@ export const config = {
 
 export default async function handler(req, res) {
   switch (req.method) {
-    case "POST": {
+    case 'GET': {
+      try {
+        const result = await handleGetRequest();
+
+        return res.status(200).json({ message: 'Success', result });
+      } catch (error) {
+        return res.status(400).json({ message: 'Error', error });
+      }
+    }
+
+    case 'POST': {
       try {
         const result = await handlePostRequest(req);
 
-        return res.status(200).json({ message: "Success", result });
+        return res.status(200).json({ message: 'Success', result });
       } catch (error) {
-        return res.status(400).json({ message: "Error", error });
+        return res.status(400).json({ message: 'Error', error });
+      }
+    }
+
+    case 'DELETE': {
+      try {
+        const { id } = req.query;
+
+        if (!id) {
+          throw 'id param is required';
+        }
+
+        const result = await handleDeleteRequest(id);
+
+        return res.status(200).json({ message: 'Success', result });
+      } catch (error) {
+        return res.status(400).json({ message: 'Error', error });
       }
     }
 
     default: {
-      return res.status(405).json({ message: "Method not allowed" });
+      return res.status(405).json({ message: 'Method not allowed' });
     }
   }
 }
+
+const handleGetRequest = () => handleGetCloudinaryUploads();
 
 const handlePostRequest = async (req) => {
   // Get the form data using the parseForm function
@@ -47,7 +79,7 @@ const handlePostRequest = async (req) => {
       // Upload the video to cloudinary, passing an array of public ids for the videos that will be joined together
       const uploadResult = await handleCloudinaryUpload(
         file.path,
-        uploadedVideos.map((video) => video.public_id.replace(/\//g, ":"))
+        uploadedVideos.map((video) => video.public_id.replace(/\//g, ':'))
       );
 
       finalVideoUploadResult = uploadResult;
@@ -62,6 +94,8 @@ const handlePostRequest = async (req) => {
 
   return finalVideoUploadResult;
 };
+
+const handleDeleteRequest = async (id) => handleCloudinaryDelete([id]);
 
 /**
  *
