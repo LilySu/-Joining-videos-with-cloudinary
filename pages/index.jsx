@@ -2,18 +2,8 @@ import Head from "next/head";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Home() {
-  /**
-   * Holds the selected video files
-   * @type {[File[],Function]}
-   */
   const [files, setFiles] = useState([]);
-
-  /**
-   * Holds the uploading/loading state
-   *  @type {[boolean,Function]}
-   */
   const [loading, setLoading] = useState(false);
-
   const [concatenatedVideos, setConcatenatedVideos] = useState([]);
 
   const getVideos = useCallback(async () => {
@@ -28,12 +18,16 @@ export default function Home() {
         throw data;
       }
 
-      setConcatenatedVideos(data.result.resources);
+      if (data.lastVideo) {
+        setConcatenatedVideos([data.lastVideo]);
+      } else {
+        console.log(data.message);
+        setConcatenatedVideos([]);
+      }
     } catch (error) {
-      // TODO: Show error message to user
       console.error(error);
     } finally {
-      // setLoading(false);
+      setLoading(false);
     }
   }, []);
 
@@ -46,10 +40,7 @@ export default function Home() {
 
     setLoading(true);
     try {
-      // Get the form data
       const formData = new FormData(e.target);
-
-      // Post the form data to the /api/videos endpoint
       const response = await fetch("/api/videos", {
         method: "POST",
         body: formData,
@@ -65,7 +56,6 @@ export default function Home() {
       setFiles([]);
       getVideos();
     } catch (error) {
-      // TODO: Show error message to user
       console.error(error);
     } finally {
       setLoading(false);
@@ -87,7 +77,6 @@ export default function Home() {
 
       getVideos();
     } catch (error) {
-      // TODO: Show error message to user
       console.error(error);
     } finally {
       setLoading(false);

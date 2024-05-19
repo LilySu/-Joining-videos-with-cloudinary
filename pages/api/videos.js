@@ -4,6 +4,7 @@ import {
   handleCloudinaryDelete,
   handleCloudinaryUpload,
   handleGetCloudinaryUploads,
+  fetchLastVideo,
 } from '../../lib/cloudinary';
 
 // Custom config for our API route
@@ -57,7 +58,14 @@ export default async function handler(req, res) {
   }
 }
 
-const handleGetRequest = () => handleGetCloudinaryUploads();
+const handleGetRequest = async () => {
+  const lastVideo = await fetchLastVideo();
+  if (lastVideo) {
+    return { lastVideo };
+  } else {
+    return { message: 'No last video found' };
+  }
+};
 
 const handlePostRequest = async (req) => {
   // Get the form data using the parseForm function
@@ -114,4 +122,4 @@ const parseForm = (req) => {
       return resolve({ fields, files });
     });
   });
-};
+}
